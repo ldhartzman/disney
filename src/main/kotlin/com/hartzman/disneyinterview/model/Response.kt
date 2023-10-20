@@ -7,20 +7,10 @@ import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import java.io.Serializable
-import kotlin.reflect.jvm.internal.impl.load.kotlin.JvmType
-
-data class Specs (@JsonProperty("@version") val version: String,
-                  val wx: String,
-                  val geo: String,
-                  val unit: String,
-                  @JsonProperty("@vocab") val vocab: String)
 
 data class Context (@JsonProperty("@context") val context: List<Any>)
 
-//data class Coordinate (val x: Double, val y: Double)
 data class Geometry (val type: String,
-//                     @JsonDeserialize(contentUsing = Deserializers.CoordDeserializer::class)
                      val coordinates: List<List<List<Int>>>)
 data class Elevation (val unitCode: String, val value: Double)
 data class PrecipitationProbability (val unitCode: String, val value: Int?)
@@ -59,23 +49,12 @@ data class Response(@JsonDeserialize(using = Deserializers.ContextDeserializer::
                     val properties: Properties)
 
 object Deserializers {
-    //    object CoordDeserializer : JsonDeserializer<Coordinate>() {
-//        override fun deserialize(p: JsonParser?, ctxt: DeserializationContext?): Coordinate {
-//            val node = p?.readValueAsTree<JsonNode>()
-//
-//            val x = node?.get("x")?.asDouble()!!
-//            val y = node.get("y")?.asDouble()!!
-//
-//            return Coordinate(x, y)
-//        }
-//    }
     object ContextDeserializer : JsonDeserializer<Context>() {
         override fun deserialize(p: JsonParser?, ctxt: DeserializationContext?): Context {
             val node = p?.readValueAsTree<JsonNode>()
 
-            var stg = ""
-            var anyList = ArrayList<Any>()
-            stg = node?.get(0)?.asText()!!
+            val anyList = ArrayList<Any>()
+            val stg = node?.get(0)?.asText()!!
             anyList.add(stg)
             val map = node.get(1)
             val map1: MutableMap<*, *>? = jacksonObjectMapper().convertValue(map, MutableMap::class.java)
@@ -99,8 +78,8 @@ object Deserializers {
             val elevation = elevationDeserializer(elevationNode)
             val periodsNode = node.get("periods").toList()
             val periodList = ArrayList<Period>()
-            for (node in periodsNode) {
-                val period = periodDeserializer(node)
+            for (periodNode in periodsNode) {
+                val period = periodDeserializer(periodNode)
                 periodList.add(period)
             }
 
@@ -164,7 +143,7 @@ object Deserializers {
     }
 }
         fun periodDeserializer(jsonNode: JsonNode) : Period {
-            val number = jsonNode?.get("number")?.asInt()!!
+            val number = jsonNode.get("number")?.asInt()!!
             val name = jsonNode.get("name")?.asText()!!
             val startTime = jsonNode.get("startTime").asText()!!
             val endTime = jsonNode.get("endTime").asText()!!
@@ -228,5 +207,3 @@ object Deserializers {
                 val value = jsonNode.get("value").asInt()
                 return RelativeHumidity(unitCode, value)
             }
-
-
