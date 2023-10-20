@@ -37,6 +37,9 @@ class WeatherService {
                 .onStatus({ responseStatus ->
                     responseStatus == HttpStatus.INTERNAL_SERVER_ERROR
                 }) { throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR) }
+                .onStatus({ responseStatus ->
+                    responseStatus == HttpStatus.BAD_REQUEST
+                }) { throw ResponseStatusException(HttpStatus.BAD_REQUEST) }
                 .awaitBody<String>()
             log.info("Successfully got a response")
 
